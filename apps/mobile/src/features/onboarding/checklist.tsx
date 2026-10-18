@@ -2,7 +2,7 @@ import { Text, View } from 'react-native';
 
 import { Image } from '@/components/ui/image';
 
-const ITEMS = ['No sign-up or email', 'No API keys to manage', 'Read-only — no funds, no trades'];
+const ITEMS = ['No sign-up or email', 'Keys stay on this phone', 'You approve every transaction'];
 
 export function Checklist() {
   return (

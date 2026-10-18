@@ -52,8 +52,16 @@ Add dependencies to the app with `npx expo install <package>` from `apps/mobile/
 - [ ] Tab shell with Liquid Glass tab bar (the tabs are still the Expo template)
 - [ ] Markets list and market detail (live order book, trades)
 - [ ] Watchlist and search
-- [ ] Wallet: create/import, send, receive (Solana devnet first)
+- [x] Wallet setup: create, import, Face ID lock, recovery phrase backup and confirmation (Solana)
+- [ ] Wallet: send, receive, portfolio (Solana devnet first)
 - [ ] Activity, profile and settings
+
+## Wallet security model
+
+- Keys are generated and stored on the device only. The 12-word recovery phrase is encrypted in the iOS keychain (`expo-secure-store`), protected by Face ID when enabled, and never leaves the phone.
+- Key derivation lives in `apps/mobile/src/core/wallet/` (pure TypeScript, no UI): BIP-39 phrases and SLIP-0010 ed25519 at `m/44'/501'/0'/0'`. It is checked against the standard "abandon … about" test vector.
+- During setup the phrase is held in memory only and is never put in route params, logs or storage until the wallet is saved.
+- Face ID and the keychain need a development build, not Expo Go. After adding native modules, rebuild with `npx expo run:ios --device <udid>`.
 
 ## Notes
 

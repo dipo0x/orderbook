@@ -18,6 +18,8 @@
   --color-sell-depth: rgba(246, 70, 93, 0.15);
   --color-live-bg: rgba(46, 189, 133, 0.12);
   --color-glow: rgba(240, 185, 11, 0.07);
+  --color-hover: #232a31;
+  --color-sell-bg: rgba(246, 70, 93, 0.12);
 
   /* React Native needs one font family per weight; these are the keys loaded by useFonts. */
   --font-inter: Inter_400Regular;

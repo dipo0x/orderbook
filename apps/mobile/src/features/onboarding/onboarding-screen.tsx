@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { type ComponentType, useCallback, useRef, useState } from 'react';
 import {
   FlatList,
@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PageDots } from '@/components/ui/page-dots';
-import { PrimaryButton } from '@/components/ui/primary-button';
+import { Button } from '@/components/ui/button';
 import { completeOnboarding } from '@/lib/onboarding-storage';
 
 import { Checklist } from './checklist';
@@ -42,8 +42,8 @@ const SLIDES: Slide[] = [
   {
     key: 'no-account',
     Illustration: Checklist,
-    title: 'No account. No keys. Just data.',
-    body: "Everything comes from OKX's public feed. There's nothing to sign up for, and nothing here can move your money.",
+    title: 'Your wallet. Your keys.',
+    body: "Market data comes from OKX's public feed. Your wallet is created on this phone, and nothing moves without your approval.",
   },
 ];
 
@@ -51,12 +51,15 @@ export function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList<Slide>>(null);
-  const [index, setIndex] = useState(0);
+  // Coming back from wallet setup lands on the slide the user left (see create-or-import-screen).
+  const { slide } = useLocalSearchParams<{ slide?: string }>();
+  const initialIndex = Math.min(Math.max(Number(slide) || 0, 0), SLIDES.length - 1);
+  const [index, setIndex] = useState(initialIndex);
   const isLast = index === SLIDES.length - 1;
 
   const finish = useCallback(async () => {
     await completeOnboarding();
-    router.replace('/(tabs)/home');
+    router.replace('/wallet');
   }, []);
 
   const next = useCallback(() => {
@@ -87,6 +90,7 @@ export function OnboardingScreen() {
       <FlatList
         ref={listRef}
         data={SLIDES}
+        initialScrollIndex={initialIndex}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -108,7 +112,7 @@ export function OnboardingScreen() {
 
       <View className="items-center gap-6 px-6 pb-2">
         <PageDots count={SLIDES.length} index={index} />
-        <PrimaryButton label={isLast ? 'Get started' : 'Next'} onPress={next} />
+        <Button label={isLast ? 'Get started' : 'Next'} onPress={next} />
       </View>
     </View>
   );
