@@ -1,6 +1,4 @@
-import { StyleSheet, View } from 'react-native';
-
-import { Palette } from '@/constants/design';
+import { View } from 'react-native';
 
 type PageDotsProps = {
   count: number;
@@ -9,28 +7,19 @@ type PageDotsProps = {
 
 export function PageDots({ count, index }: PageDotsProps) {
   return (
-    <View style={styles.row} accessibilityLabel={`Page ${index + 1} of ${count}`}>
+    <View
+      accessibilityLabel={`Page ${index + 1} of ${count}`}
+      className="flex-row items-center gap-1.5">
       {Array.from({ length: count }, (_, i) => (
-        <View key={i} style={[styles.dot, i === index && styles.active]} />
+        <View
+          key={i}
+          className={
+            i === index
+              ? 'h-1.5 w-5 rounded-[3px] bg-accent'
+              : 'size-1.5 rounded-[3px] bg-line-strong'
+          }
+        />
       ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Palette.borderStrong,
-  },
-  active: {
-    width: 20,
-    backgroundColor: Palette.accent,
-  },
-});

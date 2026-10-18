@@ -1,38 +1,15 @@
-import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { DesignFonts, Palette, Radius } from '@/constants/design';
+import { Image } from '@/components/ui/image';
 
 /** Connection status pill. Only the LIVE variant exists so far. */
 export function StatusPill({ label = 'LIVE' }: { label?: string }) {
   return (
-    <View style={styles.pill}>
-      <Image source={require('@/assets/images/onboarding/status-dot.svg')} style={styles.dot} />
-      <Text style={styles.label}>{label}</Text>
+    <View className="flex-row items-center gap-1.5 rounded-full bg-live-bg py-1 pl-2 pr-2.5">
+      <Image source={require('@/assets/images/onboarding/status-dot.svg')} className="size-1.5" />
+      <Text className="font-inter-medium text-[11px] leading-4 tracking-[0.4px] text-buy">
+        {label}
+      </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingLeft: 8,
-    paddingRight: 10,
-    paddingVertical: 4,
-    borderRadius: Radius.full,
-    backgroundColor: Palette.statusLiveBg,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-  },
-  label: {
-    fontFamily: DesignFonts.sansMedium,
-    fontSize: 11,
-    lineHeight: 16,
-    letterSpacing: 0.4,
-    color: Palette.statusLive,
-  },
-});

@@ -3,7 +3,6 @@ import { type ComponentType, useCallback, useRef, useState } from 'react';
 import {
   FlatList,
   Pressable,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
@@ -14,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PageDots } from '@/components/ui/page-dots';
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { DesignFonts, Palette } from '@/constants/design';
 import { completeOnboarding } from '@/lib/onboarding-storage';
 
 import { Checklist } from './checklist';
@@ -77,11 +75,11 @@ export function OnboardingScreen() {
   );
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <View style={styles.topBar}>
+    <View className="flex-1 bg-canvas" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      <View className="h-11 flex-row items-center justify-end pl-4 pr-5">
         {!isLast && (
           <Pressable accessibilityRole="button" hitSlop={12} onPress={() => void finish()}>
-            <Text style={styles.skip}>Skip</Text>
+            <Text className="font-inter-medium text-[13px] leading-5 text-ink-muted">Skip</Text>
           </Pressable>
         )}
       </View>
@@ -97,70 +95,21 @@ export function OnboardingScreen() {
         onMomentumScrollEnd={onMomentumEnd}
         renderItem={({ item: { Illustration, title, body } }) => (
           <View style={{ width }}>
-            <View style={styles.illustration}>
+            <View className="flex-1 items-center justify-center">
               <Illustration />
             </View>
-            <View style={styles.copy}>
-              <Text style={styles.title}>{title}</Text>
-              <Text style={styles.body}>{body}</Text>
+            <View className="gap-3 px-6 pb-8">
+              <Text className="font-inter-bold text-[28px] leading-[34px] text-ink">{title}</Text>
+              <Text className="font-inter text-[15px] leading-[22px] text-ink-muted">{body}</Text>
             </View>
           </View>
         )}
       />
 
-      <View style={styles.footer}>
+      <View className="items-center gap-6 px-6 pb-2">
         <PageDots count={SLIDES.length} index={index} />
         <PrimaryButton label={isLast ? 'Get started' : 'Next'} onPress={next} />
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Palette.bgCanvas,
-  },
-  topBar: {
-    height: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingLeft: 16,
-    paddingRight: 20,
-  },
-  skip: {
-    fontFamily: DesignFonts.sansMedium,
-    fontSize: 13,
-    lineHeight: 20,
-    color: Palette.textSecondary,
-  },
-  illustration: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  copy: {
-    gap: 12,
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-  },
-  title: {
-    fontFamily: DesignFonts.sansBold,
-    fontSize: 28,
-    lineHeight: 34,
-    color: Palette.textPrimary,
-  },
-  body: {
-    fontFamily: DesignFonts.sans,
-    fontSize: 15,
-    lineHeight: 22,
-    color: Palette.textSecondary,
-  },
-  footer: {
-    alignItems: 'center',
-    gap: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 8,
-  },
-});

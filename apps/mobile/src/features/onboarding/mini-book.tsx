@@ -1,8 +1,7 @@
-import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { Image } from '@/components/ui/image';
 import { StatusPill } from '@/components/ui/status-pill';
-import { DesignFonts, Palette } from '@/constants/design';
 
 type Level = { price: string; size: string; total: string; depth: number };
 
@@ -22,21 +21,29 @@ const BIDS: Level[] = [
 ];
 
 function BookRow({ level, side }: { level: Level; side: 'buy' | 'sell' }) {
-  const color = side === 'buy' ? Palette.marketBuy : Palette.marketSell;
-  const depthColor = side === 'buy' ? Palette.marketBuyDepth : Palette.marketSellDepth;
+  const isBuy = side === 'buy';
 
   return (
-    <View style={styles.row}>
-      <View style={styles.depthTrack}>
-        <View style={{ width: `${level.depth * 100}%`, backgroundColor: depthColor }} />
+    <View className="h-5 flex-row items-center gap-2 px-4">
+      <View className="absolute inset-0 flex-row justify-end">
+        <View
+          className={isBuy ? 'bg-buy-depth' : 'bg-sell-depth'}
+          style={{ width: `${level.depth * 100}%` }}
+        />
       </View>
-      <Text style={[styles.price, { color }]} numberOfLines={1}>
+      <Text
+        className={`flex-1 font-jetbrains-medium text-[12px] leading-5 ${isBuy ? 'text-buy' : 'text-sell'}`}
+        numberOfLines={1}>
         {level.price}
       </Text>
-      <Text style={[styles.cell, styles.size]} numberOfLines={1}>
+      <Text
+        className="flex-1 text-right font-jetbrains text-[12px] leading-5 text-ink"
+        numberOfLines={1}>
         {level.size}
       </Text>
-      <Text style={[styles.cell, styles.total]} numberOfLines={1}>
+      <Text
+        className="flex-1 text-right font-jetbrains text-[12px] leading-5 text-ink-muted"
+        numberOfLines={1}>
         {level.total}
       </Text>
     </View>
@@ -45,21 +52,20 @@ function BookRow({ level, side }: { level: Level; side: 'buy' | 'sell' }) {
 
 export function MiniBook() {
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Text style={styles.pair}>BTC-USDT</Text>
+    <View className="w-[300px] overflow-hidden rounded-2xl border border-line bg-surface pb-2">
+      <View className="flex-row items-center border-b border-line py-3 pl-4 pr-3">
+        <Text className="flex-1 font-inter-medium text-[13px] leading-5 text-ink">BTC-USDT</Text>
         <StatusPill />
       </View>
       {ASKS.map((level) => (
         <BookRow key={level.price} level={level} side="sell" />
       ))}
-      <View style={styles.spread}>
-        <Text style={styles.mid}>62,481.35</Text>
-        <Image
-          source={require('@/assets/images/onboarding/icon-arrow-up.svg')}
-          style={styles.arrow}
-        />
-        <Text style={styles.spreadText}>0.02 bps</Text>
+      <View className="h-11 flex-row items-center gap-1.5 border-y border-line px-4 py-2">
+        <Text className="font-jetbrains-bold text-[20px] leading-7 text-buy">62,481.35</Text>
+        <Image source={require('@/assets/images/onboarding/icon-arrow-up.svg')} className="size-4" />
+        <Text className="flex-1 text-right font-jetbrains text-[11px] leading-4 text-ink-muted">
+          0.02 bps
+        </Text>
       </View>
       {BIDS.map((level) => (
         <BookRow key={level.price} level={level} side="buy" />
@@ -67,84 +73,3 @@ export function MiniBook() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    width: 300,
-    paddingBottom: 8,
-    overflow: 'hidden',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Palette.borderDefault,
-    backgroundColor: Palette.bgSurface,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 16,
-    paddingRight: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Palette.borderDefault,
-  },
-  pair: {
-    flex: 1,
-    fontFamily: DesignFonts.sansMedium,
-    fontSize: 13,
-    lineHeight: 20,
-    color: Palette.textPrimary,
-  },
-  row: {
-    height: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-  },
-  depthTrack: {
-    ...StyleSheet.absoluteFill,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  price: {
-    flex: 1,
-    fontFamily: DesignFonts.monoMedium,
-    fontSize: 12,
-    lineHeight: 20,
-  },
-  cell: {
-    flex: 1,
-    textAlign: 'right',
-    fontFamily: DesignFonts.mono,
-    fontSize: 12,
-    lineHeight: 20,
-  },
-  size: { color: Palette.textPrimary },
-  total: { color: Palette.textSecondary },
-  spread: {
-    height: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Palette.borderDefault,
-  },
-  mid: {
-    fontFamily: DesignFonts.monoBold,
-    fontSize: 20,
-    lineHeight: 28,
-    color: Palette.marketBuy,
-  },
-  arrow: { width: 16, height: 16 },
-  spreadText: {
-    flex: 1,
-    textAlign: 'right',
-    fontFamily: DesignFonts.mono,
-    fontSize: 11,
-    lineHeight: 16,
-    color: Palette.textSecondary,
-  },
-});

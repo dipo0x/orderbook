@@ -1,6 +1,4 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
-
-import { DesignFonts, Palette } from '@/constants/design';
+import { Pressable, Text } from 'react-native';
 
 type PrimaryButtonProps = {
   label: string;
@@ -12,28 +10,8 @@ export function PrimaryButton({ label, onPress }: PrimaryButtonProps) {
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
-      <Text style={styles.label}>{label}</Text>
+      className="h-[52px] items-center justify-center self-stretch rounded-xl bg-accent active:opacity-85">
+      <Text className="font-inter-semibold text-[16px] leading-6 text-canvas">{label}</Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    height: 52,
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: Palette.accent,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  label: {
-    fontFamily: DesignFonts.sansSemibold,
-    fontSize: 16,
-    lineHeight: 24,
-    color: Palette.bgCanvas,
-  },
-});

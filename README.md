@@ -23,7 +23,7 @@ Inside `apps/mobile/src/`:
 | `app/` | Routes only (Expo Router). `(tabs)/` holds the main tab screens |
 | `features/` | Feature code grouped by screen flow (`onboarding/`, more to come) |
 | `components/` | Reusable UI (`ui/` holds the design-system pieces) |
-| `constants/` | Theme and design tokens (`design.ts` mirrors the Figma tokens) |
+| `constants/` | Template theme constants |
 | `lib/` | Small helpers such as onboarding persistence |
 
 ## Getting started
@@ -58,5 +58,7 @@ Add dependencies to the app with `npx expo install <package>` from `apps/mobile/
 ## Notes
 
 - The tab bar uses Expo Router's native tabs (`expo-router/native-tabs`, stable since SDK 58).
-- Fonts are Inter and JetBrains Mono, loaded with `@expo-google-fonts`.
+- Styling uses Tailwind v4 through [Uniwind](https://docs.uniwind.dev) (`className`). Figma design tokens (colors, fonts) live in `apps/mobile/src/global.css` under `@theme`. `src/uniwind-types.d.ts` is generated when Metro starts.
+- Fonts are Inter and JetBrains Mono, loaded with `@expo-google-fonts`. Use the `font-inter-*` and `font-jetbrains-*` classes, because React Native needs one font family per weight.
+- After changing `global.css` or `metro.config.js`, restart the dev server with `npx expo start --clear`.
 - Do not commit secrets. `.env` files are git-ignored; put RPC and API keys there.

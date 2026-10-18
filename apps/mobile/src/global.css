@@ -1,3 +1,34 @@
+@import 'tailwindcss';
+@import 'uniwind';
+
+/* Design tokens from the Figma file "Order Book Viewer — Project 1". The app is dark-only. */
+@theme {
+  --color-canvas: #0b0e11;
+  --color-surface: #14181d;
+  --color-raised: #1c2127;
+  --color-line: #222831;
+  --color-line-strong: #2f3742;
+  --color-ink: #e6e8ea;
+  --color-ink-muted: #7d8590;
+  --color-ink-faint: #4b535d;
+  --color-accent: #f0b90b;
+  --color-buy: #2ebd85;
+  --color-sell: #f6465d;
+  --color-buy-depth: rgba(46, 189, 133, 0.15);
+  --color-sell-depth: rgba(246, 70, 93, 0.15);
+  --color-live-bg: rgba(46, 189, 133, 0.12);
+  --color-glow: rgba(240, 185, 11, 0.07);
+
+  /* React Native needs one font family per weight; these are the keys loaded by useFonts. */
+  --font-inter: Inter_400Regular;
+  --font-inter-medium: Inter_500Medium;
+  --font-inter-semibold: Inter_600SemiBold;
+  --font-inter-bold: Inter_700Bold;
+  --font-jetbrains: JetBrainsMono_400Regular;
+  --font-jetbrains-medium: JetBrainsMono_500Medium;
+  --font-jetbrains-bold: JetBrainsMono_700Bold;
+}
+
 :root {
   --font-display:
     Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,

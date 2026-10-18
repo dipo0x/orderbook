@@ -15,13 +15,16 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
-import { Palette } from '@/constants/design';
+import '@/global.css';
 
 SplashScreen.preventAutoHideAsync();
 
+// Navigation theme needs a JS color; keep in sync with --color-canvas in global.css.
+const CANVAS = '#0b0e11';
+
 const theme = {
   ...DarkTheme,
-  colors: { ...DarkTheme.colors, background: Palette.bgCanvas, card: Palette.bgCanvas },
+  colors: { ...DarkTheme.colors, background: CANVAS, card: CANVAS },
 };
 
 export default function RootLayout() {
