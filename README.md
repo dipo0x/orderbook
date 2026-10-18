@@ -49,8 +49,8 @@ Add dependencies to the app with `npx expo install <package>` from `apps/mobile/
 
 - [x] Monorepo setup
 - [x] Onboarding: splash and three intro screens, shown on first launch only
-- [ ] Tab shell with Liquid Glass tab bar (the tabs are still the Expo template)
-- [ ] Markets list and market detail (live order book, trades)
+- [x] Markets list (with search) and market detail: live order book, trades, candles, grouping sheet, connection states
+- [x] Liquid Glass tab bar (native tabs); Watchlist, Wallet, Activity and Profile tabs are placeholders
 - [ ] Watchlist and search
 - [x] Wallet setup: create, import, Face ID lock, recovery phrase backup and confirmation (Solana)
 - [x] PIN fallback and unlock screens (Face ID or PIN on app open)
@@ -65,6 +65,13 @@ Add dependencies to the app with `npx expo install <package>` from `apps/mobile/
 - Key derivation lives in `apps/mobile/src/core/wallet/` (pure TypeScript, no UI): BIP-39 phrases and SLIP-0010 ed25519 at `m/44'/501'/0'/0'`. It is checked against the standard "abandon … about" test vector.
 - During setup the phrase is held in memory only and is never put in route params, logs or storage until the wallet is saved.
 - Face ID and the keychain need a development build, not Expo Go. After adding native modules, rebuild with `npx expo run:ios --device <udid>`.
+
+## Market data
+
+- Source: OKX public API, no key needed. REST for tickers, candles and instrument tick sizes; one shared WebSocket (`src/core/market/okx-socket.ts`) for tickers, `books` (order book) and trades.
+- The order book is a local copy (`order-book.ts`): a snapshot plus incremental updates. If an update arrives out of sequence, or the book ever crosses, it is dropped and a fresh snapshot is requested (the "Resyncing" state). OKX's checksum is not used: the public `books` channel sends `checksum: 0`, and the checksummed channels need a login.
+- The socket sends a ping when idle, reconnects with backoff (the "Reconnecting" state) and re-subscribes everything.
+- Markets shown are set in `src/core/market/markets.ts`.
 
 ## Notes
 

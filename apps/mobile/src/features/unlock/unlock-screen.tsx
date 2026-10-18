@@ -16,7 +16,7 @@ export function UnlockScreen() {
   const unlock = useCallback(async () => {
     setBusy(true);
     try {
-      if (await authenticate('Unlock your wallet')) router.replace('/(tabs)/home');
+      if (await authenticate('Unlock your wallet')) router.replace('/(tabs)/markets');
     } finally {
       setBusy(false);
     }

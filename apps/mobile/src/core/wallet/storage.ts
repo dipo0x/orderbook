@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 
 import { SOLANA_DERIVATION_PATH, deriveSolanaAccount } from './derive';
 import { normalizeMnemonic } from './mnemonic';
-import { type WrappedSecret, unwrapWithPin, wrapWithPin } from './pin-crypto';
+import { PIN_KDF_ITERATIONS, type WrappedSecret, unwrapWithPin, wrapWithPin } from './pin-crypto';
 
 // The recovery phrase is stored once per unlock method: one copy behind Face ID in the keychain,
 // and one encrypted with a key derived from the PIN. Either method alone can open the wallet.
@@ -106,6 +106,18 @@ function writeAttempts(attempts: Attempts) {
   });
 }
 
+/** Re-encrypts the phrase with the current PIN stretching cost, so older wallets unlock faster. */
+async function rewrapPin(mnemonic: string, pin: string) {
+  try {
+    const fresh = await wrapWithPin(mnemonic, pin, getRandomBytesAsync);
+    await SecureStore.setItemAsync(PIN_KEY, JSON.stringify(fresh), {
+      keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    });
+  } catch {
+    // The wallet still unlocks with its existing encryption.
+  }
+}
+
 /** Epoch ms until which PIN entry is locked, or 0 if it is open. */
 export async function getPinLockedUntil(): Promise<number> {
   const { lockedUntil } = await readAttempts();
@@ -133,9 +145,11 @@ export async function unlockWithPin(pin: string): Promise<PinUnlockResult> {
   const failed = attempts.failed + 1;
   await writeAttempts({ ...attempts, failed, lockedUntil: 0 });
 
-  const mnemonic = await unwrapWithPin(JSON.parse(raw) as WrappedSecret, pin);
+  const wrapped = JSON.parse(raw) as WrappedSecret;
+  const mnemonic = await unwrapWithPin(wrapped, pin);
   if (mnemonic !== null) {
     await writeAttempts(NO_ATTEMPTS);
+    if (wrapped.iterations !== PIN_KDF_ITERATIONS) await rewrapPin(mnemonic, pin);
     return { status: 'ok', mnemonic };
   }
 

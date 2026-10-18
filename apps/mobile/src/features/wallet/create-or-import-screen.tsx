@@ -79,7 +79,7 @@ export function CreateOrImportScreen() {
           hitSlop={12}
           onPress={async () => {
             await skipWalletSetup();
-            router.replace('/(tabs)/home');
+            router.replace('/(tabs)/markets');
           }}>
           <Text className="font-inter-medium text-[13px] leading-5 text-ink-muted">Skip</Text>
         </Pressable>

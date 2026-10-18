@@ -49,7 +49,7 @@ export function UnlockPinScreen() {
     try {
       const result = await unlockWithPin(pin);
       if (result.status === 'ok') {
-        router.replace('/(tabs)/home');
+        router.replace('/(tabs)/markets');
         return;
       }
       if (result.status === 'locked') {
@@ -77,7 +77,8 @@ export function UnlockPinScreen() {
   if (locked) message = `Too many attempts. Try again in ${formatCountdown(lockedUntil - now)}.`;
   else if (wrong) {
     message = `Wrong PIN. ${wrongAttemptsLeft} ${wrongAttemptsLeft === 1 ? 'attempt' : 'attempts'} left.`;
-  } else if (hasBiometrics) message = 'Use Face ID instead';
+  } else if (checking) message = 'Unlocking…';
+  else if (hasBiometrics) message = 'Use Face ID instead';
 
   return (
     <PinScreen
@@ -90,8 +91,10 @@ export function UnlockPinScreen() {
       }
       filled={flashingWrong ? PIN_LENGTH : entry.digits.length}
       message={message}
-      messageTone={locked || flashingWrong ? 'error' : wrong ? 'muted' : 'link'}
-      onMessagePress={hasBiometrics && !locked && !wrong ? () => router.replace('/unlock') : undefined}
+      messageTone={locked || flashingWrong ? 'error' : wrong || checking ? 'muted' : 'link'}
+      onMessagePress={
+        hasBiometrics && !locked && !wrong && !checking ? () => router.replace('/unlock') : undefined
+      }
       keypadDisabled={locked || checking || flashingWrong}
       onDigit={(digit) => {
         setWrongAttemptsLeft(null);

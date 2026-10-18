@@ -17,7 +17,7 @@ export function useSaveWallet() {
     try {
       await saveWallet({ mnemonic, pin, biometric });
       reset();
-      router.replace('/(tabs)/home');
+      router.replace('/(tabs)/markets');
     } catch (error) {
       setSaving(false);
       Alert.alert(

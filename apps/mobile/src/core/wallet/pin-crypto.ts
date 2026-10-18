@@ -4,11 +4,12 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { hex } from '@scure/base';
 
 /**
- * Cost of stretching the PIN. A 6-digit PIN can't survive offline guessing whatever this is set to,
- * so the real protection is the device keychain plus attempt limits. Stored with each wrapped secret
- * so it can be raised later without breaking existing wallets.
+ * Cost of stretching the PIN. A 6-digit PIN can't survive offline guessing whatever this is set to
+ * (a million possibilities), so the real protection is the device keychain plus attempt limits.
+ * Pure-JS hashing is slow on Hermes, so this stays low to keep unlock quick. Stored with each
+ * wrapped secret, and wallets saved with a different value are re-wrapped on the next unlock.
  */
-export const PIN_KDF_ITERATIONS = 50_000;
+export const PIN_KDF_ITERATIONS = 5_000;
 export const PIN_LENGTH = 6;
 
 export type WrappedSecret = {

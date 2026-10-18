@@ -25,7 +25,7 @@ export default function Index() {
       // A wallet means the app opens locked: Face ID if enabled, otherwise the PIN. Without one,
       // the intro and wallet setup always run, until the user makes a wallet or taps Skip.
       if (wallet) router.replace(wallet.biometric ? '/unlock' : '/unlock-pin');
-      else router.replace(skipped ? '/(tabs)/home' : '/onboarding');
+      else router.replace(skipped ? '/(tabs)/markets' : '/onboarding');
     }
     void route();
 
