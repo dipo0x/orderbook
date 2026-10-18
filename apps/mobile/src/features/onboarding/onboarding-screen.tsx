@@ -13,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PageDots } from '@/components/ui/page-dots';
 import { Button } from '@/components/ui/button';
-import { completeOnboarding } from '@/lib/onboarding-storage';
 
 import { Checklist } from './checklist';
 import { DepthChart } from './depth-chart';
@@ -57,14 +56,11 @@ export function OnboardingScreen() {
   const [index, setIndex] = useState(initialIndex);
   const isLast = index === SLIDES.length - 1;
 
-  const finish = useCallback(async () => {
-    await completeOnboarding();
-    router.replace('/wallet');
-  }, []);
+  const finish = useCallback(() => router.replace('/wallet'), []);
 
   const next = useCallback(() => {
     if (isLast) {
-      void finish();
+      finish();
       return;
     }
     listRef.current?.scrollToIndex({ index: index + 1, animated: true });
@@ -81,7 +77,7 @@ export function OnboardingScreen() {
     <View className="flex-1 bg-canvas" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <View className="h-11 flex-row items-center justify-end pl-4 pr-5">
         {!isLast && (
-          <Pressable accessibilityRole="button" hitSlop={12} onPress={() => void finish()}>
+          <Pressable accessibilityRole="button" hitSlop={12} onPress={() => finish()}>
             <Text className="font-inter-medium text-[13px] leading-5 text-ink-muted">Skip</Text>
           </Pressable>
         )}

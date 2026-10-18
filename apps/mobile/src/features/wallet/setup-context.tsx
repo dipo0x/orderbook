@@ -6,36 +6,42 @@ type SetupState = {
   mnemonic: string | null;
   source: Source | null;
   biometric: boolean;
+  pin: string | null;
 };
 
 type SetupApi = SetupState & {
   start: (source: Source, mnemonic: string) => void;
   setBiometric: (enabled: boolean) => void;
+  setPin: (pin: string | null) => void;
   reset: () => void;
 };
 
-const EMPTY: SetupState = { mnemonic: null, source: null, biometric: false };
+const EMPTY: SetupState = { mnemonic: null, source: null, biometric: false, pin: null };
 
 const SetupContext = createContext<SetupApi | null>(null);
 
 /**
  * Holds the recovery phrase in memory while the wallet setup screens run.
- * It is never put in route params, logs or storage until the user finishes setup.
+ * The PIN is held the same way. Neither is put in route params, logs or storage until the user
+ * finishes setup.
  */
 export function WalletSetupProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<SetupState>(EMPTY);
 
   const start = useCallback((source: Source, mnemonic: string) => {
-    setState({ source, mnemonic, biometric: false });
+    setState({ source, mnemonic, biometric: false, pin: null });
   }, []);
   const setBiometric = useCallback((biometric: boolean) => {
     setState((prev) => ({ ...prev, biometric }));
   }, []);
+  const setPin = useCallback((pin: string | null) => {
+    setState((prev) => ({ ...prev, pin }));
+  }, []);
   const reset = useCallback(() => setState(EMPTY), []);
 
   const value = useMemo(
-    () => ({ ...state, start, setBiometric, reset }),
-    [state, start, setBiometric, reset],
+    () => ({ ...state, start, setBiometric, setPin, reset }),
+    [state, start, setBiometric, setPin, reset],
   );
   return <SetupContext.Provider value={value}>{children}</SetupContext.Provider>;
 }

@@ -8,14 +8,14 @@ import { useWalletSetup } from './setup-context';
 
 /** Saves the wallet being set up, clears it from memory, and leaves the setup flow. */
 export function useSaveWallet() {
-  const { mnemonic, biometric, reset } = useWalletSetup();
+  const { mnemonic, pin, biometric, reset } = useWalletSetup();
   const [saving, setSaving] = useState(false);
 
   const save = useCallback(async () => {
-    if (!mnemonic || saving) return;
+    if (!mnemonic || !pin || saving) return;
     setSaving(true);
     try {
-      await saveWallet({ mnemonic, biometric });
+      await saveWallet({ mnemonic, pin, biometric });
       reset();
       router.replace('/(tabs)/home');
     } catch (error) {
@@ -25,7 +25,7 @@ export function useSaveWallet() {
         error instanceof Error ? error.message : 'Something went wrong. Please try again.',
       );
     }
-  }, [mnemonic, biometric, reset, saving]);
+  }, [mnemonic, pin, biometric, reset, saving]);
 
   return { save, saving };
 }

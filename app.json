@@ -1,0 +1,5 @@
+{
+  "ios": {
+    "bundleIdentifier": "com.dipo0x.orderbook-monorepo"
+  }
+}

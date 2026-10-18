@@ -53,12 +53,15 @@ Add dependencies to the app with `npx expo install <package>` from `apps/mobile/
 - [ ] Markets list and market detail (live order book, trades)
 - [ ] Watchlist and search
 - [x] Wallet setup: create, import, Face ID lock, recovery phrase backup and confirmation (Solana)
+- [x] PIN fallback and unlock screens (Face ID or PIN on app open)
 - [ ] Wallet: send, receive, portfolio (Solana devnet first)
 - [ ] Activity, profile and settings
 
 ## Wallet security model
 
-- Keys are generated and stored on the device only. The 12-word recovery phrase is encrypted in the iOS keychain (`expo-secure-store`), protected by Face ID when enabled, and never leaves the phone.
+- Keys are generated and stored on the device only. The 12-word recovery phrase never leaves the phone. It is stored once per unlock method in the iOS keychain (`expo-secure-store`): one copy behind Face ID (optional), and one encrypted with AES-256-GCM under a key derived from a 6-digit PIN (always created). Either method alone opens the wallet.
+- PIN attempts are counted before each check. After 5 misses the PIN locks for 1 minute, doubling each round up to 1 hour. Nothing is ever deleted. A 6-digit PIN cannot resist offline guessing by itself; the protection is the device keychain plus these limits.
+- The app opens locked when a wallet exists: Face ID if enabled, otherwise the PIN.
 - Key derivation lives in `apps/mobile/src/core/wallet/` (pure TypeScript, no UI): BIP-39 phrases and SLIP-0010 ed25519 at `m/44'/501'/0'/0'`. It is checked against the standard "abandon … about" test vector.
 - During setup the phrase is held in memory only and is never put in route params, logs or storage until the wallet is saved.
 - Face ID and the keychain need a development build, not Expo Go. After adding native modules, rebuild with `npx expo run:ios --device <udid>`.

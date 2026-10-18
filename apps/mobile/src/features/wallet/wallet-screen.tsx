@@ -11,15 +11,24 @@ type WalletScreenProps = {
   right?: ReactNode;
   /** Gap between the content blocks. Figma uses 24 on some screens and 16 on others. */
   gap?: 4 | 6;
+  /** Unlock screens have no nav bar. */
+  showNavBar?: boolean;
 };
 
 /** Shared layout for the wallet setup screens: nav bar, scrolling content, pinned footer. */
-export function WalletScreen({ children, footer, onBack, right, gap = 4 }: WalletScreenProps) {
+export function WalletScreen({
+  children,
+  footer,
+  onBack,
+  right,
+  gap = 4,
+  showNavBar = true,
+}: WalletScreenProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View className="flex-1 bg-canvas" style={{ paddingTop: insets.top }}>
-      <NavBar onBack={onBack} right={right} />
+      {showNavBar ? <NavBar onBack={onBack} right={right} /> : null}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1">

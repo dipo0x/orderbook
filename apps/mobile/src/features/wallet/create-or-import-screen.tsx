@@ -8,6 +8,7 @@ import { Image } from '@/components/ui/image';
 import { LogoMark } from '@/components/ui/logo-mark';
 import { ScreenHeading } from '@/components/ui/screen-heading';
 import { mnemonicFromEntropy } from '@/core/wallet/mnemonic';
+import { skipWalletSetup } from '@/lib/onboarding-storage';
 
 import { useWalletSetup } from './setup-context';
 import { WalletScreen } from './wallet-screen';
@@ -73,7 +74,13 @@ export function CreateOrImportScreen() {
       gap={6}
       onBack={goBack}
       right={
-        <Pressable accessibilityRole="button" hitSlop={12} onPress={() => router.replace('/(tabs)/home')}>
+        <Pressable
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={async () => {
+            await skipWalletSetup();
+            router.replace('/(tabs)/home');
+          }}>
           <Text className="font-inter-medium text-[13px] leading-5 text-ink-muted">Skip</Text>
         </Pressable>
       }>

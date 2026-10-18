@@ -8,7 +8,6 @@ import { ScreenHeading } from '@/components/ui/screen-heading';
 import { authenticate, getBiometricStatus } from '@/core/wallet/biometrics';
 
 import { useWalletSetup } from './setup-context';
-import { useSaveWallet } from './use-save-wallet';
 import { WalletScreen } from './wallet-screen';
 
 const FEATURES = [
@@ -21,46 +20,35 @@ const FEATURES = [
 ];
 
 export function BiometricsScreen() {
-  const { mnemonic, source, setBiometric } = useWalletSetup();
-  const { save, saving } = useSaveWallet();
+  const { mnemonic, setBiometric } = useWalletSetup();
   const [busy, setBusy] = useState(false);
 
   if (!mnemonic) return <Redirect href="/wallet" />;
 
-  // Creating shows the phrase to back up next. Importing has nothing left to show, so it saves now.
-  async function proceed() {
-    if (source === 'create') router.push('/wallet/recovery-phrase');
-    else await save();
-  }
-
-  function continueWithoutBiometrics(reason: string) {
-    Alert.alert('Continue without Face ID?', `${reason}\n\nYour wallet will still be encrypted on this device, but anyone who can unlock your phone could open it.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Continue',
-        onPress: () => {
-          setBiometric(false);
-          void proceed();
-        },
-      },
-    ]);
+  // A PIN is always created next: it is the fallback when Face ID isn't available.
+  function continueToPin(biometric: boolean) {
+    setBiometric(biometric);
+    router.push('/wallet/create-pin');
   }
 
   async function enable() {
     setBusy(true);
     try {
       const status = await getBiometricStatus();
-      if (status === 'unavailable') {
-        continueWithoutBiometrics("This phone doesn't support Face ID or Touch ID.");
+      if (status !== 'ready') {
+        Alert.alert(
+          "Face ID isn't available",
+          status === 'not-enrolled'
+            ? 'Face ID or Touch ID is not set up on this phone. You can set it up in Settings, or use a PIN.'
+            : "This phone doesn't support Face ID or Touch ID. You can use a PIN instead.",
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Use a PIN', onPress: () => continueToPin(false) },
+          ],
+        );
         return;
       }
-      if (status === 'not-enrolled') {
-        continueWithoutBiometrics('Face ID or Touch ID is not set up on this phone.');
-        return;
-      }
-      if (!(await authenticate('Enable Face ID for your wallet'))) return;
-      setBiometric(true);
-      await proceed();
+      if (await authenticate('Enable Face ID for your wallet')) continueToPin(true);
     } finally {
       setBusy(false);
     }
@@ -72,12 +60,12 @@ export function BiometricsScreen() {
       onBack={() => router.back()}
       footer={
         <>
-          <Button label="Enable Face ID" onPress={() => void enable()} disabled={busy || saving} />
+          <Button label="Enable Face ID" onPress={() => void enable()} disabled={busy} />
           <Button
             variant="secondary"
             label="Use a 6-digit PIN instead"
-            disabled={busy || saving}
-            onPress={() => continueWithoutBiometrics("A PIN option isn't built yet.")}
+            disabled={busy}
+            onPress={() => continueToPin(false)}
           />
         </>
       }>

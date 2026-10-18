@@ -48,7 +48,11 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={theme}>
       <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
+      <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+        {/* Nothing to swipe back to from an unlock screen. */}
+        <Stack.Screen name="unlock" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="unlock-pin" options={{ gestureEnabled: false }} />
+      </Stack>
     </ThemeProvider>
   );
 }
