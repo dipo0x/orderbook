@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { SplashView } from '@/features/onboarding/splash-view';
 import { getWalletMeta } from '@/core/wallet/storage';
 import { hasSkippedWalletSetup, resetOnboarding } from '@/lib/onboarding-storage';
+import { enterApp } from '@/lib/enter-app';
 
 const MIN_SPLASH_MS = 3000;
 
@@ -25,7 +26,7 @@ export default function Index() {
       // A wallet means the app opens locked: Face ID if enabled, otherwise the PIN. Without one,
       // the intro and wallet setup always run, until the user makes a wallet or taps Skip.
       if (wallet) router.replace(wallet.biometric ? '/unlock' : '/unlock-pin');
-      else router.replace(skipped ? '/(tabs)/markets' : '/onboarding');
+      else { if (skipped) enterApp(); else router.replace('/onboarding'); };
     }
     void route();
 

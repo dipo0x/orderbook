@@ -54,8 +54,10 @@ Add dependencies to the app with `npx expo install <package>` from `apps/mobile/
 - [ ] Watchlist and search
 - [x] Wallet setup: create, import, Face ID lock, recovery phrase backup and confirmation (Solana)
 - [x] PIN fallback and unlock screens (Face ID or PIN on app open)
-- [ ] Wallet: send, receive, portfolio (Solana devnet first)
-- [ ] Activity, profile and settings
+- [x] Wallet tab on Solana devnet: balance, receive (QR), send (review with simulation, Face ID/PIN to sign, live confirmation), recent activity, faucet
+- [x] Asset detail (SOL), Activity tab and Transaction detail with Solscan link
+- [x] Profile, Settings, Security, Wallet & keys, Notifications and About: Face ID on/off, Face ID for sending, auto-lock, change PIN, new-address warning, currency, default market, order book depth, price flash, export private key, remove wallet
+- [ ] Not built yet: swap, token names/prices, delivering notifications (the toggles are saved only)
 
 ## Wallet security model
 
@@ -72,6 +74,14 @@ Add dependencies to the app with `npx expo install <package>` from `apps/mobile/
 - The order book is a local copy (`order-book.ts`): a snapshot plus incremental updates. If an update arrives out of sequence, or the book ever crosses, it is dropped and a fresh snapshot is requested (the "Resyncing" state). OKX's checksum is not used: the public `books` channel sends `checksum: 0`, and the checksummed channels need a login.
 - The socket sends a ping when idle, reconnects with backoff (the "Reconnecting" state) and re-subscribes everything.
 - Markets shown are set in `src/core/market/markets.ts`.
+
+## Solana (devnet)
+
+- Chain code lives in `apps/mobile/src/core/solana/`: a small JSON-RPC client (`rpc.ts`), a hand-built SOL transfer transaction (`transaction.ts`), exact amount parsing with `bigint` (`amount.ts`) and friendly simulation errors (`errors.ts`). The network is set in `config.ts` (devnet, test funds with no real value).
+- `transaction.ts` is checked to produce byte-for-byte the same message and signed transaction as `@solana/web3.js`.
+- Sending: Review simulates the unsigned transfer first, then asks for Face ID or PIN, decrypts the recovery phrase only to sign, wipes the key, sends, and polls until the network confirms.
+- The public devnet faucet is often rate limited. When it is, the Faucet button offers the web faucet (https://faucet.solana.com) and copies your address.
+- The public RPC endpoint is rate limited too; use a provider key (Helius, QuickNode) before relying on it.
 
 ## Notes
 

@@ -4,6 +4,7 @@ import { useCallback, useSyncExternalStore } from 'react';
 const KEY = 'orderbook:watchlist:v1';
 
 let ids: readonly string[] = [];
+let ready = false;
 const listeners = new Set<() => void>();
 
 function emit(next: readonly string[]) {
@@ -13,9 +14,13 @@ function emit(next: readonly string[]) {
 
 AsyncStorage.getItem(KEY)
   .then((raw) => {
-    if (raw) emit(JSON.parse(raw) as string[]);
+    ready = true;
+    emit(raw ? (JSON.parse(raw) as string[]) : ids);
   })
-  .catch(() => {});
+  .catch(() => {
+    ready = true;
+    emit(ids);
+  });
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
@@ -28,9 +33,10 @@ export function toggleWatchlist(instId: string) {
   AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => {});
 }
 
-/** Saved market ids, newest last. Persisted on the device. */
+/** Saved market ids, newest last. Persisted on the device. `ready` is false until they have loaded. */
 export function useWatchlist() {
   const current = useSyncExternalStore(subscribe, () => ids);
+  const loaded = useSyncExternalStore(subscribe, () => ready);
   const has = useCallback((instId: string) => current.includes(instId), [current]);
-  return { ids: current, has, toggle: toggleWatchlist };
+  return { ids: current, ready: loaded, has, toggle: toggleWatchlist };
 }

@@ -7,6 +7,7 @@ import { Image } from '@/components/ui/image';
 import { ScreenHeading } from '@/components/ui/screen-heading';
 import { authenticate } from '@/core/wallet/biometrics';
 import { WalletScreen } from '@/features/wallet/wallet-screen';
+import { enterApp } from '@/lib/enter-app';
 
 /** Face ID unlock shown when the app opens and a wallet exists. */
 export function UnlockScreen() {
@@ -16,7 +17,7 @@ export function UnlockScreen() {
   const unlock = useCallback(async () => {
     setBusy(true);
     try {
-      if (await authenticate('Unlock your wallet')) router.replace('/(tabs)/markets');
+      if (await authenticate('Unlock your wallet')) enterApp();
     } finally {
       setBusy(false);
     }

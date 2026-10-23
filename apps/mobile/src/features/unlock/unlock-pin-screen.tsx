@@ -5,6 +5,7 @@ import { PIN_LENGTH } from '@/core/wallet/pin-crypto';
 import { getPinLockedUntil, getWalletMeta, unlockWithPin } from '@/core/wallet/storage';
 import { PinScreen } from '@/features/pin/pin-screen';
 import { usePinEntry } from '@/features/pin/use-pin-entry';
+import { enterApp } from '@/lib/enter-app';
 
 const WRONG_PIN_RESET_MS = 700;
 
@@ -49,7 +50,7 @@ export function UnlockPinScreen() {
     try {
       const result = await unlockWithPin(pin);
       if (result.status === 'ok') {
-        router.replace('/(tabs)/markets');
+        enterApp();
         return;
       }
       if (result.status === 'locked') {

@@ -14,15 +14,13 @@ export type MarketStatus = 'connecting' | 'live' | 'resyncing' | 'reconnecting';
 const BOOK_FLUSH_MS = 120;
 const CANDLE_REFRESH_MS = 30_000;
 const MAX_TRADES = 50;
-const BOOK_DEPTH = 7;
-
-type Options = { instId: string; timeframe: Timeframe; group: number };
+type Options = { instId: string; timeframe: Timeframe; group: number; depth: number };
 
 /**
  * Everything the market detail screen needs: ticker, order book, trades and candles for one
  * market, plus the connection status the status pill and banners show.
  */
-export function useMarket({ instId, timeframe, group }: Options) {
+export function useMarket({ instId, timeframe, group, depth }: Options) {
   const ids = useMemo(() => [instId], [instId]);
   const instrument = useInstruments(ids)[instId];
   const decimals = instrument ? decimalsOf(instrument.tickSz) : 2;
@@ -38,7 +36,7 @@ export function useMarket({ instId, timeframe, group }: Options) {
   const [resyncing, setResyncing] = useState(false);
 
   const book = useRef(new OrderBook());
-  const viewParams = useRef({ group, decimals });
+  const viewParams = useRef({ group, decimals, depth });
 
   // Book updates arrive many times a second, so redraws are batched. The latest grouping is read
   // from a ref when the batch fires, so a change of grouping only needs to schedule a redraw.
@@ -47,15 +45,15 @@ export function useMarket({ instId, timeframe, group }: Options) {
     if (redrawTimer.current) return;
     redrawTimer.current = setTimeout(() => {
       redrawTimer.current = null;
-      const { group: g, decimals: d } = viewParams.current;
-      setBookView(book.current.hasSnapshot ? book.current.view(g, BOOK_DEPTH, d) : null);
+      const { group: g, decimals: d, depth: rows } = viewParams.current;
+      setBookView(book.current.hasSnapshot ? book.current.view(g, rows, d) : null);
     }, delay);
   }, []);
 
   useEffect(() => {
-    viewParams.current = { group, decimals };
+    viewParams.current = { group, decimals, depth };
     redraw(0);
-  }, [group, decimals, redraw]);
+  }, [group, decimals, depth, redraw]);
 
   useEffect(() => {
     const bookArg = { channel: 'books', instId };

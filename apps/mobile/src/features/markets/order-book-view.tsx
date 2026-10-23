@@ -6,7 +6,6 @@ import type { BookRow as BookRowData, BookView } from '@/core/market/order-book'
 
 import type { MarketStatus } from './use-market';
 
-const ROWS_PER_SIDE = 7;
 const HEADER = 'flex-1 font-inter-medium text-[11px] leading-4 tracking-[0.4px] text-ink-muted';
 
 function BookRow({
@@ -14,15 +13,17 @@ function BookRow({
   side,
   decimals,
   sizeDp,
+  height,
 }: {
   row: BookRowData;
   side: 'buy' | 'sell';
   decimals: number;
   sizeDp: number;
+  height: number;
 }) {
   const isBuy = side === 'buy';
   return (
-    <View className="h-5 flex-row items-center gap-2 px-4">
+    <View className="flex-row items-center gap-2 px-4" style={{ height }}>
       <View className="absolute inset-0 flex-row justify-end">
         <View
           className={isBuy ? 'bg-buy-depth' : 'bg-sell-depth'}
@@ -47,9 +48,9 @@ function BookRow({
 }
 
 /** Grey placeholder bars shown while the first snapshot loads. */
-function SkeletonRow() {
+function SkeletonRow({ height }: { height: number }) {
   return (
-    <View className="h-5 flex-row items-center gap-2 px-4">
+    <View className="flex-row items-center gap-2 px-4" style={{ height }}>
       <View className="flex-1 items-start">
         <View className="h-1.5 w-[72px] rounded-full bg-raised" />
       </View>
@@ -74,6 +75,10 @@ type OrderBookViewProps = {
   decimals: number;
   sizeDp: number;
   group: number;
+  /** Rows shown on each side of the spread, sized to the space available. */
+  depth: number;
+  /** Row height, slightly above 20 so the rows fill the space exactly. */
+  rowHeight: number;
   onOpenGrouping: () => void;
 };
 
@@ -87,6 +92,8 @@ export function OrderBookView({
   decimals,
   sizeDp,
   group,
+  depth,
+  rowHeight,
   onOpenGrouping,
 }: OrderBookViewProps) {
   const spread = book?.bestAsk != null && book.bestBid != null ? book.bestAsk - book.bestBid : null;
@@ -95,7 +102,7 @@ export function OrderBookView({
   let levels;
   if (status === 'reconnecting') {
     levels = (
-      <View className="h-[284px] items-center justify-center gap-2 px-8">
+      <View className="flex-1 items-center justify-center gap-2 px-8">
         <Image source={require('@/assets/images/market/icon-wifi-off-24.svg')} className="size-6" />
         <Text className="font-inter-medium text-[13px] leading-5 text-ink">No connection</Text>
         <Text className="text-center font-inter text-[13px] leading-5 text-ink-muted">
@@ -107,16 +114,16 @@ export function OrderBookView({
   } else if (!book) {
     levels = (
       <View>
-        {Array.from({ length: ROWS_PER_SIDE }, (_, i) => (
-          <SkeletonRow key={`a${i}`} />
+        {Array.from({ length: depth }, (_, i) => (
+          <SkeletonRow key={`a${i}`} height={rowHeight} />
         ))}
         <View className="h-11 items-center justify-center border-y border-line">
           <Text className="font-jetbrains text-[11px] leading-4 text-ink-muted">
             Waiting for order book snapshot…
           </Text>
         </View>
-        {Array.from({ length: ROWS_PER_SIDE }, (_, i) => (
-          <SkeletonRow key={`b${i}`} />
+        {Array.from({ length: depth }, (_, i) => (
+          <SkeletonRow key={`b${i}`} height={rowHeight} />
         ))}
       </View>
     );
@@ -124,7 +131,7 @@ export function OrderBookView({
     levels = (
       <View className={status === 'resyncing' ? 'opacity-60' : ''}>
         {book.asks.map((row) => (
-          <BookRow key={row.price} row={row} side="sell" decimals={decimals} sizeDp={sizeDp} />
+          <BookRow key={row.price} row={row} side="sell" decimals={decimals} sizeDp={sizeDp} height={rowHeight} />
         ))}
         <View className="h-11 flex-row items-center gap-1.5 border-y border-line px-4 py-2">
           <Text
@@ -142,14 +149,14 @@ export function OrderBookView({
           </Text>
         </View>
         {book.bids.map((row) => (
-          <BookRow key={row.price} row={row} side="buy" decimals={decimals} sizeDp={sizeDp} />
+          <BookRow key={row.price} row={row} side="buy" decimals={decimals} sizeDp={sizeDp} height={rowHeight} />
         ))}
       </View>
     );
   }
 
   return (
-    <View>
+    <View className="flex-1">
       <View className="flex-row items-center px-4 pb-1 pt-2">
         <Text className="flex-1 font-inter-medium text-[11px] leading-4 tracking-[0.4px] text-ink-muted">
           Depth

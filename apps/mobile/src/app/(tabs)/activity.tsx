@@ -1,5 +1,3 @@
-import { ComingSoon } from '@/features/placeholders/coming-soon';
+import { ActivityScreen } from '@/features/activity/activity-screen';
 
-export default function ActivityTab() {
-  return <ComingSoon title="Activity" />;
-}
+export default ActivityScreen;

@@ -45,7 +45,7 @@ export function ConfirmPhraseScreen() {
   const [filled, setFilled] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
 
-  if (!mnemonic) return <Redirect href="/wallet" />;
+  if (!mnemonic) return <Redirect href="/setup" />;
 
   const { blanks, bank } = quiz;
   const nextBlank = blanks.find((i) => filled[i] === undefined);

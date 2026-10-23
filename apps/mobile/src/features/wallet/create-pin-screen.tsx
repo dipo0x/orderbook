@@ -18,11 +18,11 @@ export function CreatePinScreen() {
       return;
     }
     setPin(pin);
-    router.push('/wallet/confirm-pin');
+    router.push('/setup/confirm-pin');
     clear();
   });
 
-  if (!mnemonic) return <Redirect href="/wallet" />;
+  if (!mnemonic) return <Redirect href="/setup" />;
 
   return (
     <PinScreen

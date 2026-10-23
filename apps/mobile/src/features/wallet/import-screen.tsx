@@ -43,7 +43,7 @@ export function ImportScreen() {
     }
     start('import', normalizeMnemonic(text));
     setText('');
-    router.push('/wallet/biometrics');
+    router.push('/setup/biometrics');
   }
 
   return (

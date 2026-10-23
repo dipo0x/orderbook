@@ -12,6 +12,7 @@ import { skipWalletSetup } from '@/lib/onboarding-storage';
 
 import { useWalletSetup } from './setup-context';
 import { WalletScreen } from './wallet-screen';
+import { enterApp } from '@/lib/enter-app';
 
 type OptionCardProps = {
   title: string;
@@ -61,7 +62,7 @@ export function CreateOrImportScreen() {
       const mnemonic = mnemonicFromEntropy(entropy);
       entropy.fill(0);
       start('create', mnemonic);
-      router.push('/wallet/biometrics');
+      router.push('/setup/biometrics');
     } catch {
       Alert.alert("Couldn't create a wallet", 'Secure random numbers are unavailable. Please try again.');
     } finally {
@@ -79,7 +80,7 @@ export function CreateOrImportScreen() {
           hitSlop={12}
           onPress={async () => {
             await skipWalletSetup();
-            router.replace('/(tabs)/markets');
+            enterApp();
           }}>
           <Text className="font-inter-medium text-[13px] leading-5 text-ink-muted">Skip</Text>
         </Pressable>
@@ -102,7 +103,7 @@ export function CreateOrImportScreen() {
           title="Import an existing wallet"
           subtitle="Restore from a recovery phrase or a private key."
           icon={require('@/assets/images/wallet/icon-download.svg')}
-          onPress={() => router.push('/wallet/import')}
+          onPress={() => router.push('/setup/import')}
         />
       </View>
       <Callout tone="info">

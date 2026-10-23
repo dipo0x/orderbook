@@ -46,7 +46,7 @@ export function RecoveryPhraseScreen() {
     return () => clearTimeout(timer);
   }, [copied]);
 
-  if (!mnemonic) return <Redirect href="/wallet" />;
+  if (!mnemonic) return <Redirect href="/setup" />;
   const words = mnemonic.split(' ');
 
   async function copy() {
@@ -58,7 +58,7 @@ export function RecoveryPhraseScreen() {
     <WalletScreen
       onBack={() => router.back()}
       footer={
-        <Button label="I've written them down" onPress={() => router.push('/wallet/confirm-phrase')} />
+        <Button label="I've written them down" onPress={() => router.push('/setup/confirm-phrase')} />
       }>
       <ScreenHeading
         title="Write these 12 words down"

@@ -15,6 +15,11 @@ export async function fetchTickers(instIds: readonly string[]): Promise<Ticker[]
   return rows.filter((row) => wanted.has(row.instId));
 }
 
+/** Every SPOT market's ticker, for search. One request; filtering happens on the device. */
+export async function fetchAllSpotTickers(): Promise<Ticker[]> {
+  return get<Ticker>('/market/tickers?instType=SPOT');
+}
+
 export async function fetchInstrument(instId: string): Promise<Instrument | null> {
   const [row] = await get<{ instId: string; baseCcy: string; quoteCcy: string; tickSz: string; lotSz: string }>(
     `/public/instruments?instType=SPOT&instId=${instId}`,
@@ -24,7 +29,7 @@ export async function fetchInstrument(instId: string): Promise<Instrument | null
 }
 
 /** Candles come back newest first as [ts, o, h, l, c, vol, ...]; returned oldest first. */
-export async function fetchCandles(instId: string, bar: Timeframe, limit = 80): Promise<Candle[]> {
+export async function fetchCandles(instId: string, bar: Timeframe, limit = 300): Promise<Candle[]> {
   const rows = await get<string[]>(`/market/candles?instId=${instId}&bar=${bar}&limit=${limit}`);
   return rows
     .map(([ts, open, high, low, close, volume]) => ({

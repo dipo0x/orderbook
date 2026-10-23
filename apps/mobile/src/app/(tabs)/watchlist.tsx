@@ -1,5 +1,3 @@
-import { ComingSoon } from '@/features/placeholders/coming-soon';
+import { WatchlistScreen } from '@/features/watchlist/watchlist-screen';
 
-export default function WatchlistTab() {
-  return <ComingSoon title="Watchlist" />;
-}
+export default WatchlistScreen;

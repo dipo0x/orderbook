@@ -23,12 +23,12 @@ export function BiometricsScreen() {
   const { mnemonic, setBiometric } = useWalletSetup();
   const [busy, setBusy] = useState(false);
 
-  if (!mnemonic) return <Redirect href="/wallet" />;
+  if (!mnemonic) return <Redirect href="/setup" />;
 
   // A PIN is always created next: it is the fallback when Face ID isn't available.
   function continueToPin(biometric: boolean) {
     setBiometric(biometric);
-    router.push('/wallet/create-pin');
+    router.push('/setup/create-pin');
   }
 
   async function enable() {

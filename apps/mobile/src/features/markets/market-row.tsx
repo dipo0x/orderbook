@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { FlashText } from '@/components/ui/flash-text';
 import {
   changePercent,
   decimalsOf,
@@ -15,9 +16,11 @@ type MarketRowProps = {
   instId: string;
   ticker?: Ticker;
   instrument?: Instrument;
+  /** Runs when the row is tapped, before opening the market. */
+  onOpen?: () => void;
 };
 
-export function MarketRow({ instId, ticker, instrument }: MarketRowProps) {
+export function MarketRow({ instId, ticker, instrument, onOpen }: MarketRowProps) {
   const { base, quote } = splitInstId(instId);
   const percent = ticker ? changePercent(ticker) : null;
   const decimals = instrument
@@ -27,7 +30,10 @@ export function MarketRow({ instId, ticker, instrument }: MarketRowProps) {
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={() => router.push({ pathname: '/market/[instId]', params: { instId } })}
+      onPress={() => {
+        onOpen?.();
+        router.push({ pathname: '/market/[instId]', params: { instId } });
+      }}
       className="h-16 flex-row items-center gap-3 border-b border-line px-4 active:bg-surface">
       <View className="flex-1 gap-0.5">
         <View className="flex-row items-baseline gap-0.5">
@@ -38,9 +44,9 @@ export function MarketRow({ instId, ticker, instrument }: MarketRowProps) {
           Vol {ticker ? formatVolume(ticker.volCcy24h) : '—'}
         </Text>
       </View>
-      <Text className="text-right font-jetbrains-medium text-[12px] leading-5 text-ink">
+      <FlashText value={ticker ? Number(ticker.last) : null} className="text-right font-jetbrains-medium text-[12px] leading-5 text-ink">
         {ticker ? formatPrice(ticker.last, decimals) : '—'}
-      </Text>
+      </FlashText>
       <View
         className={`h-7 w-[72px] items-center justify-center rounded ${
           percent === null ? 'bg-raised' : percent < 0 ? 'bg-sell' : 'bg-buy'

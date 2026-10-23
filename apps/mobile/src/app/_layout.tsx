@@ -14,8 +14,10 @@ import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import '@/global.css';
+import { useAutoLock } from '@/lib/use-auto-lock';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,6 +40,7 @@ export default function RootLayout() {
     JetBrainsMono_700Bold,
   });
   const ready = fontsLoaded || fontError != null;
+  useAutoLock();
 
   useEffect(() => {
     if (ready) SplashScreen.hide();
@@ -46,6 +49,7 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <ThemeProvider value={theme}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
@@ -54,5 +58,6 @@ export default function RootLayout() {
         <Stack.Screen name="unlock-pin" options={{ gestureEnabled: false }} />
       </Stack>
     </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

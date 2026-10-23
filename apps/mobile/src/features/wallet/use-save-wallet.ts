@@ -1,10 +1,10 @@
-import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { saveWallet } from '@/core/wallet/storage';
 
 import { useWalletSetup } from './setup-context';
+import { enterApp } from '@/lib/enter-app';
 
 /** Saves the wallet being set up, clears it from memory, and leaves the setup flow. */
 export function useSaveWallet() {
@@ -17,7 +17,7 @@ export function useSaveWallet() {
     try {
       await saveWallet({ mnemonic, pin, biometric });
       reset();
-      router.replace('/(tabs)/markets');
+      enterApp();
     } catch (error) {
       setSaving(false);
       Alert.alert(

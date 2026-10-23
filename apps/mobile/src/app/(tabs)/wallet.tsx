@@ -1,5 +1,3 @@
-import { ComingSoon } from '@/features/placeholders/coming-soon';
+import { PortfolioScreen } from '@/features/portfolio/portfolio-screen';
 
-export default function WalletTab() {
-  return <ComingSoon title="Wallet" />;
-}
+export default PortfolioScreen;

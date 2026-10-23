@@ -162,6 +162,38 @@ export async function unlockWithPin(pin: string): Promise<PinUnlockResult> {
   return { status: 'wrong', attemptsLeft: MAX_PIN_ATTEMPTS - failed };
 }
 
+/** Turns Face ID off: the keychain copy behind it is deleted. The PIN copy keeps the wallet openable. */
+export async function disableBiometrics(): Promise<void> {
+  const meta = await getWalletMeta();
+  if (!meta) return;
+  await SecureStore.deleteItemAsync(BIOMETRIC_KEY);
+  await AsyncStorage.setItem(META_KEY, JSON.stringify({ ...meta, biometric: false }));
+}
+
+/** Turns Face ID on. The caller proves who they are first (the PIN), which is how it has the phrase. */
+export async function enableBiometrics(mnemonic: string): Promise<void> {
+  const meta = await getWalletMeta();
+  if (!meta) return;
+  const account = await deriveSolanaAccount(normalizeMnemonic(mnemonic));
+  account.privateKey.fill(0);
+  if (account.address !== meta.address) throw new Error("This phrase doesn't match the wallet.");
+  await SecureStore.setItemAsync(BIOMETRIC_KEY, normalizeMnemonic(mnemonic), {
+    requireAuthentication: true,
+    authenticationPrompt: 'Unlock your wallet',
+    keychainAccessible: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+  });
+  await AsyncStorage.setItem(META_KEY, JSON.stringify({ ...meta, biometric: true }));
+}
+
+/** Replaces the PIN. The phrase is re-encrypted under the new one and the attempt counter starts fresh. */
+export async function changePin(mnemonic: string, newPin: string): Promise<void> {
+  const wrapped = await wrapWithPin(mnemonic, newPin, getRandomBytesAsync);
+  await SecureStore.setItemAsync(PIN_KEY, JSON.stringify(wrapped), {
+    keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+  });
+  await writeAttempts(NO_ATTEMPTS);
+}
+
 export async function deleteWallet(): Promise<void> {
   await Promise.all([
     SecureStore.deleteItemAsync(BIOMETRIC_KEY),

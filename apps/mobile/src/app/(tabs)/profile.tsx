@@ -1,5 +1,3 @@
-import { ComingSoon } from '@/features/placeholders/coming-soon';
+import { ProfileScreen } from '@/features/profile/profile-screen';
 
-export default function ProfileTab() {
-  return <ComingSoon title="Profile" />;
-}
+export default ProfileScreen;

@@ -6,6 +6,8 @@
     "packages/*"
   ],
   "scripts": {
+    "start": "npm run mobile",
+    "start:clear": "npm run start -w @orderbook/mobile -- --clear",
     "mobile": "npm run start -w @orderbook/mobile",
     "api": "npm run dev -w @orderbook/api",
     "typecheck": "npm run typecheck --workspaces --if-present",

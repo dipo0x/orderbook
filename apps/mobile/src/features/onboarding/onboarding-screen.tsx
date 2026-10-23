@@ -56,7 +56,7 @@ export function OnboardingScreen() {
   const [index, setIndex] = useState(initialIndex);
   const isLast = index === SLIDES.length - 1;
 
-  const finish = useCallback(() => router.replace('/wallet'), []);
+  const finish = useCallback(() => router.replace('/setup'), []);
 
   const next = useCallback(() => {
     if (isLast) {

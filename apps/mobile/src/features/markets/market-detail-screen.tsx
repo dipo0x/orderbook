@@ -1,6 +1,13 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  type LayoutChangeEvent,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Image } from '@/components/ui/image';
@@ -10,12 +17,12 @@ import {
   changePercent,
   formatChange,
   formatPrice,
-  formatVolume,
   groupingOptions,
   sizeDecimals,
 } from '@/core/market/format';
 import { splitInstId } from '@/core/market/markets';
 import type { Timeframe } from '@/core/market/types';
+import { updateSettings, useSettings } from '@/lib/settings';
 import { useWatchlist } from '@/lib/watchlist';
 
 import { CandleChart } from './candle-chart';
@@ -24,6 +31,14 @@ import { OrderBookView } from './order-book-view';
 import { TradesView } from './trades-view';
 import { useInstruments } from './use-instruments';
 import { useMarket } from './use-market';
+
+// Heights from the design: depth toolbar 34, column header 24, spread bar 44, book rows 20.
+const BOOK_CHROME = 34 + 24 + 44;
+const NAV_HEIGHT = 44;
+const MIN_BOOK_HEIGHT = 302;
+const ROW = 20;
+const MIN_DEPTH = 5;
+const MAX_DEPTH = 25;
 
 const TIMEFRAMES: Timeframe[] = ['1m', '5m', '15m', '1H', '4H', '1D'];
 const STAT = 'gap-0.5';
@@ -35,11 +50,19 @@ export function MarketDetailScreen() {
   const { instId = 'BTC-USDT' } = useLocalSearchParams<{ instId: string }>();
   const { base, quote } = splitInstId(instId);
   const watchlist = useWatchlist();
+  const { bookDepth } = useSettings();
+
+  // Remembered so "Last viewed" can reopen it at launch.
+  useEffect(() => {
+    updateSettings({ lastMarket: instId });
+  }, [instId]);
 
   const [timeframe, setTimeframe] = useState<Timeframe>('15m');
   const [tab, setTab] = useState<'book' | 'trades'>('book');
   const [groupChoice, setGroupChoice] = useState<number | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { height: windowHeight } = useWindowDimensions();
+  const [topHeight, setTopHeight] = useState(0);
 
   // The grouping choices depend on the market's tick size, so they're only known once it loads.
   const ids = useMemo(() => [instId], [instId]);
@@ -47,7 +70,18 @@ export function MarketDetailScreen() {
   const options = useMemo(() => groupingOptions(tickSz), [tickSz]);
   const group = groupChoice ?? options[0];
 
-  const market = useMarket({ instId, timeframe, group });
+  // The book gets whatever screen height is left under the nav bar, header, chart and tabs. It is
+  // sized from the screen (not from its own content) so more rows can't make it taller.
+  const bookHeight = Math.max(windowHeight - insets.top - NAV_HEIGHT - topHeight, MIN_BOOK_HEIGHT);
+
+  // As many rows as fit, stretched a little so none is left over.
+  const available = Math.max(bookHeight - BOOK_CHROME, 0);
+  // As many rows as fit, up to the number of levels chosen in Settings.
+  const fit = Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, Math.floor(available / (2 * ROW))));
+  const depth = Math.min(bookDepth, fit);
+  const rowHeight = Math.max(ROW, Math.min(available / (2 * depth), ROW + 12));
+
+  const market = useMarket({ instId, timeframe, group, depth });
   const { decimals, status, ticker, trades, candles, candlesLoading, bookView } = market;
 
   const percent = ticker ? changePercent(ticker) : null;
@@ -93,7 +127,8 @@ export function MarketDetailScreen() {
         <StatusPill status={status} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View onLayout={(event: LayoutChangeEvent) => setTopHeight(event.nativeEvent.layout.height)}>
         <View className="gap-2 border-b border-line px-4 pb-3 pt-1">
           <View className="flex-row items-baseline gap-2">
             <Text
@@ -116,7 +151,7 @@ export function MarketDetailScreen() {
             </View>
             <View className={STAT}>
               <Text className={STAT_LABEL}>24h Vol ({base})</Text>
-              <Text className={STAT_VALUE}>{ticker ? formatVolume(ticker.vol24h) : '—'}</Text>
+              <Text className={STAT_VALUE}>{ticker ? formatPrice(ticker.vol24h, 2) : '—'}</Text>
             </View>
           </View>
         </View>
@@ -153,7 +188,7 @@ export function MarketDetailScreen() {
               </Pressable>
             ))}
           </View>
-          <CandleChart candles={candles} loading={candlesLoading} decimals={decimals} />
+          <CandleChart key={timeframe} candles={candles} loading={candlesLoading} decimals={decimals} />
         </View>
 
         <View className="flex-row">
@@ -174,6 +209,9 @@ export function MarketDetailScreen() {
           ))}
         </View>
 
+        </View>
+
+        <View className="overflow-hidden" style={{ height: bookHeight }}>
         {tab === 'book' ? (
           <OrderBookView
             status={status}
@@ -185,11 +223,14 @@ export function MarketDetailScreen() {
             decimals={decimals}
             sizeDp={sizeDp}
             group={group}
+            depth={depth}
+            rowHeight={rowHeight}
             onOpenGrouping={() => setSheetOpen(true)}
           />
         ) : (
           <TradesView trades={trades} base={base} quote={quote} decimals={decimals} sizeDp={sizeDp} />
         )}
+        </View>
       </ScrollView>
 
       <GroupingSheet

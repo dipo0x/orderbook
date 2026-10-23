@@ -19,11 +19,11 @@ export function ConfirmPinScreen() {
       return;
     }
     // Creating shows the phrase to back up next. Importing has nothing left to show, so it saves now.
-    if (source === 'create') router.push('/wallet/recovery-phrase');
+    if (source === 'create') router.push('/setup/recovery-phrase');
     else void save();
   });
 
-  if (!mnemonic || !pin) return <Redirect href="/wallet" />;
+  if (!mnemonic || !pin) return <Redirect href="/setup" />;
 
   return (
     <PinScreen

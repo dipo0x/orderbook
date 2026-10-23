@@ -13,6 +13,8 @@ type WalletScreenProps = {
   gap?: 4 | 6;
   /** Unlock screens have no nav bar. */
   showNavBar?: boolean;
+  /** Small title next to the back button, as on the Receive and Send screens. */
+  title?: string;
 };
 
 /** Shared layout for the wallet setup screens: nav bar, scrolling content, pinned footer. */
@@ -23,12 +25,13 @@ export function WalletScreen({
   right,
   gap = 4,
   showNavBar = true,
+  title,
 }: WalletScreenProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View className="flex-1 bg-canvas" style={{ paddingTop: insets.top }}>
-      {showNavBar ? <NavBar onBack={onBack} right={right} /> : null}
+      {showNavBar ? <NavBar onBack={onBack} right={right} title={title} /> : null}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1">

@@ -12,11 +12,13 @@ type PinKeypadProps = {
   onDigit: (digit: string) => void;
   onBackspace: () => void;
   disabled?: boolean;
+  /** Optional key for the empty bottom-left slot, e.g. "." on an amount pad. */
+  extraKey?: string;
 };
 
 const KEY = 'h-14 flex-1 items-center justify-center rounded-[10px] active:bg-raised';
 
-export function PinKeypad({ onDigit, onBackspace, disabled = false }: PinKeypadProps) {
+export function PinKeypad({ onDigit, onBackspace, disabled = false, extraKey }: PinKeypadProps) {
   return (
     <View className="gap-1 p-2">
       {ROWS.map((row) => (
@@ -35,7 +37,18 @@ export function PinKeypad({ onDigit, onBackspace, disabled = false }: PinKeypadP
         </View>
       ))}
       <View className="flex-row gap-1">
-        <View className="h-14 flex-1" />
+        {extraKey ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={extraKey === '.' ? 'Decimal point' : extraKey}
+            disabled={disabled}
+            onPress={() => onDigit(extraKey)}
+            className={KEY}>
+            <Text className="font-jetbrains-medium text-[24px] leading-8 text-ink">{extraKey}</Text>
+          </Pressable>
+        ) : (
+          <View className="h-14 flex-1" />
+        )}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="0"
