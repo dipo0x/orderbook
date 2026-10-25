@@ -1,5 +1,7 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 
+import { withAuthPrompt } from '@/lib/auth-prompt';
+
 export type BiometricStatus = 'ready' | 'not-enrolled' | 'unavailable';
 
 export async function getBiometricStatus(): Promise<BiometricStatus> {
@@ -10,6 +12,6 @@ export async function getBiometricStatus(): Promise<BiometricStatus> {
 
 /** Shows the system biometric prompt. Resolves false if the user cancels or it fails. */
 export async function authenticate(promptMessage: string): Promise<boolean> {
-  const result = await LocalAuthentication.authenticateAsync({ promptMessage });
+  const result = await withAuthPrompt(() => LocalAuthentication.authenticateAsync({ promptMessage }));
   return result.success;
 }

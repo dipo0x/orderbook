@@ -15,7 +15,11 @@ export function PrivacyScreen() {
         },
         {
           heading: 'What leaves the phone',
-          body: 'Your public wallet address is sent to the Solana network node to read balances and send transfers, which are public on the blockchain. Market data is requested from OKX. A currency rate is requested from open.er-api.com. None of these requests include your keys.',
+          body: 'Your public wallet address is sent to the Solana network (through the app server when one is configured) to read balances and send transfers, which are public on the blockchain. Market data comes from OKX and currency rates from open.er-api.com. None of these requests include your keys.',
+        },
+        {
+          heading: 'If you turn on alerts',
+          body: 'The server stores your phone notification token next to your public address, so it can tell you when money arrives. It never stores keys or your recovery phrase, and it forgets your phone when you turn alerts off or remove the wallet.',
         },
         {
           heading: 'What is saved on the phone',

@@ -239,7 +239,11 @@ export function PortfolioScreen() {
           icon={require('@/assets/images/portfolio/action-receive.svg')}
           onPress={() => router.push('/receive')}
         />
-        <ActionButton label="Swap" icon={require('@/assets/images/portfolio/action-swap.svg')} disabled />
+        <ActionButton
+          label="Swap"
+          icon={require('@/assets/images/portfolio/action-swap.svg')}
+          onPress={() => router.push('/swap')}
+        />
         <ActionButton
           label={isTestnet ? 'Faucet' : 'Buy'}
           icon={require('@/assets/images/portfolio/action-plus.svg')}

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
+import { apiFetch } from '@/core/api';
 import { formatPrice } from '@/core/market/format';
 
 import { type CurrencyCode, useSettings } from './settings';
@@ -24,15 +25,26 @@ function publish(next: typeof rates) {
   listeners.forEach((listener) => listener());
 }
 
+/** Rates from the backend's cache when there is one, otherwise from the public rates service. */
+async function fetchRates(): Promise<{ rates?: Record<string, number> } | null> {
+  try {
+    const response = await apiFetch('/fx');
+    if (response.ok) return (await response.json()) as { rates?: Record<string, number> };
+  } catch {
+    // No backend, or it is down.
+  }
+  const response = await fetch('https://open.er-api.com/v6/latest/USD');
+  return (await response.json()) as { rates?: Record<string, number> };
+}
+
 async function load() {
   try {
     const raw = await AsyncStorage.getItem(KEY);
     const saved = raw ? (JSON.parse(raw) as { at: number; rates: typeof rates }) : null;
     if (saved) publish(saved.rates);
     if (saved && Date.now() - saved.at < MAX_AGE_MS) return;
-    const response = await fetch('https://open.er-api.com/v6/latest/USD');
-    const json = (await response.json()) as { rates?: Record<string, number> };
-    if (!json.rates) return;
+    const json = await fetchRates();
+    if (!json?.rates) return;
     const next: typeof rates = { USD: 1 };
     for (const code of Object.keys(CURRENCIES) as CurrencyCode[]) {
       if (typeof json.rates[code] === 'number') next[code] = json.rates[code];

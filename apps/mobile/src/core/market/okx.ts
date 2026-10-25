@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import type { Candle, Instrument, Ticker, Timeframe, Trade } from './types';
 
 const REST_URL = 'https://www.okx.com/api/v5';
@@ -9,15 +10,25 @@ async function get<T>(path: string): Promise<T[]> {
   return json.data;
 }
 
-export async function fetchTickers(instIds: readonly string[]): Promise<Ticker[]> {
-  const wanted = new Set(instIds);
+/** Spot tickers from the backend's shared cache when there is one, otherwise straight from OKX. */
+async function spotTickers(ids?: readonly string[]): Promise<Ticker[]> {
+  try {
+    const response = await apiFetch(`/prices${ids ? `?ids=${ids.join(',')}` : ''}`);
+    if (response.ok) return ((await response.json()) as { data: Ticker[] }).data;
+  } catch {
+    // No backend, or it is down: ask OKX directly.
+  }
   const rows = await get<Ticker>('/market/tickers?instType=SPOT');
-  return rows.filter((row) => wanted.has(row.instId));
+  return ids ? rows.filter((row) => ids.includes(row.instId)) : rows;
+}
+
+export function fetchTickers(instIds: readonly string[]): Promise<Ticker[]> {
+  return spotTickers(instIds);
 }
 
 /** Every SPOT market's ticker, for search. One request; filtering happens on the device. */
-export async function fetchAllSpotTickers(): Promise<Ticker[]> {
-  return get<Ticker>('/market/tickers?instType=SPOT');
+export function fetchAllSpotTickers(): Promise<Ticker[]> {
+  return spotTickers();
 }
 
 export async function fetchInstrument(instId: string): Promise<Instrument | null> {

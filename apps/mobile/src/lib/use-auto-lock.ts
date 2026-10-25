@@ -4,6 +4,8 @@ import { AppState } from 'react-native';
 
 import { getWalletMeta } from '@/core/wallet/storage';
 
+import { authPromptActive } from './auth-prompt';
+
 import { AUTO_LOCK_MS, getSettings } from './settings';
 
 // Routes where the wallet is already locked, or not set up yet, so there is nothing to lock.
@@ -25,11 +27,13 @@ export function useAutoLock() {
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'background') {
-        leftAt.current = Date.now();
+      if (state !== 'active') {
+        // Both "inactive" (app switcher, Control Center) and "background" (home screen) count as
+        // leaving. A Face ID prompt also makes the app inactive, so it is ignored.
+        if (leftAt.current === null && !authPromptActive()) leftAt.current = Date.now();
         return;
       }
-      if (state !== 'active' || leftAt.current === null) return;
+      if (leftAt.current === null) return;
       const away = Date.now() - leftAt.current;
       leftAt.current = null;
       if (away < AUTO_LOCK_MS[getSettings().autoLock] || UNLOCKED_ONLY(path.current)) return;

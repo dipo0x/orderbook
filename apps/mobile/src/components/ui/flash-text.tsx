@@ -23,7 +23,7 @@ export function FlashText({ value, className, children }: FlashTextProps) {
     if (!flashOnChange || before === null || value === null || before === value) return;
     const flash = value > before ? up : down;
     flash.setValue(1);
-    Animated.timing(flash, { toValue: 0, duration: 600, useNativeDriver: true }).start();
+    Animated.timing(flash, { toValue: 0, duration: 600, useNativeDriver: false }).start();
   }, [value, flashOnChange, up, down]);
 
   return (

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getRandomBytesAsync } from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
 
+import { withAuthPrompt } from '@/lib/auth-prompt';
 import { SOLANA_DERIVATION_PATH, deriveSolanaAccount } from './derive';
 import { normalizeMnemonic } from './mnemonic';
 import { PIN_KDF_ITERATIONS, type WrappedSecret, unwrapWithPin, wrapWithPin } from './pin-crypto';
@@ -53,11 +54,13 @@ export async function saveWallet(params: {
 
   try {
     if (params.biometric) {
-      await SecureStore.setItemAsync(BIOMETRIC_KEY, mnemonic, {
-        requireAuthentication: true,
-        authenticationPrompt: 'Unlock your wallet',
-        keychainAccessible: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-      });
+      await withAuthPrompt(() =>
+        SecureStore.setItemAsync(BIOMETRIC_KEY, mnemonic, {
+          requireAuthentication: true,
+          authenticationPrompt: 'Unlock your wallet',
+          keychainAccessible: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+        }),
+      );
     }
     await SecureStore.setItemAsync(PIN_KEY, JSON.stringify(wrapped), {
       keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
@@ -82,10 +85,12 @@ export async function saveWallet(params: {
 export async function readMnemonicWithBiometrics(prompt: string): Promise<string | null> {
   const meta = await getWalletMeta();
   if (!meta?.biometric) return null;
-  return SecureStore.getItemAsync(BIOMETRIC_KEY, {
-    requireAuthentication: true,
-    authenticationPrompt: prompt,
-  });
+  return withAuthPrompt(() =>
+    SecureStore.getItemAsync(BIOMETRIC_KEY, {
+      requireAuthentication: true,
+      authenticationPrompt: prompt,
+    }),
+  );
 }
 
 type Attempts = { failed: number; lockLevel: number; lockedUntil: number };
@@ -177,11 +182,13 @@ export async function enableBiometrics(mnemonic: string): Promise<void> {
   const account = await deriveSolanaAccount(normalizeMnemonic(mnemonic));
   account.privateKey.fill(0);
   if (account.address !== meta.address) throw new Error("This phrase doesn't match the wallet.");
-  await SecureStore.setItemAsync(BIOMETRIC_KEY, normalizeMnemonic(mnemonic), {
-    requireAuthentication: true,
-    authenticationPrompt: 'Unlock your wallet',
-    keychainAccessible: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-  });
+  await withAuthPrompt(() =>
+    SecureStore.setItemAsync(BIOMETRIC_KEY, normalizeMnemonic(mnemonic), {
+      requireAuthentication: true,
+      authenticationPrompt: 'Unlock your wallet',
+      keychainAccessible: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+    }),
+  );
   await AsyncStorage.setItem(META_KEY, JSON.stringify({ ...meta, biometric: true }));
 }
 

@@ -112,7 +112,7 @@ export function AssetScreen() {
         <View className="flex-row px-4 pb-1 pt-5">
           <Action label="Send" icon={require('@/assets/images/portfolio/action-send.svg')} onPress={() => router.push('/send')} />
           <Action label="Receive" icon={require('@/assets/images/portfolio/action-receive.svg')} onPress={() => router.push('/receive')} />
-          <Action label="Swap" icon={require('@/assets/images/portfolio/action-swap.svg')} disabled />
+          <Action label="Swap" icon={require('@/assets/images/portfolio/action-swap.svg')} onPress={() => router.push('/swap')} />
         </View>
 
         <View className="flex-row items-center px-4 pb-2 pt-5">

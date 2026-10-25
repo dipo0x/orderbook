@@ -90,7 +90,9 @@ export class OkxSocket {
     } else if (this.ws && this.ws.readyState !== WebSocket.OPEN) {
       this.ws.close();
     } else if (Date.now() - this.lastMessageAt > HEARTBEAT_MS) {
-      this.send('ping');
+      // iOS freezes sockets in the background, so a connection that has been quiet this long is
+      // assumed dead. Closing it reconnects and re-subscribes, which also fetches fresh snapshots.
+      this.ws?.close();
     }
   }
 

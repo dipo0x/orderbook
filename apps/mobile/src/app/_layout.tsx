@@ -14,10 +14,14 @@ import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import '@/global.css';
+import { PrivacyCover } from '@/components/ui/privacy-cover';
+import { okxSocket } from '@/core/market/okx-socket';
 import { useAutoLock } from '@/lib/use-auto-lock';
+import { usePushSync } from '@/lib/use-push-sync';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,6 +45,15 @@ export default function RootLayout() {
   });
   const ready = fontsLoaded || fontError != null;
   useAutoLock();
+  usePushSync();
+
+  // Phones freeze sockets in the background: reconnect market data as soon as the app returns.
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') okxSocket.reconnectNow();
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     if (ready) SplashScreen.hide();
@@ -57,6 +70,7 @@ export default function RootLayout() {
         <Stack.Screen name="unlock" options={{ gestureEnabled: false }} />
         <Stack.Screen name="unlock-pin" options={{ gestureEnabled: false }} />
       </Stack>
+      <PrivacyCover />
     </ThemeProvider>
     </GestureHandlerRootView>
   );

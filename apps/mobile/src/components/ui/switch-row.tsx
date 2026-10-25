@@ -1,6 +1,5 @@
-import { Switch } from 'react-native';
-
 import { SettingsRow } from '@/components/ui/settings-row';
+import { Toggle } from '@/components/ui/toggle';
 
 type SwitchRowProps = {
   label: string;
@@ -16,15 +15,7 @@ export function SwitchRow({ label, icon, value, onValueChange, disabled }: Switc
     <SettingsRow
       label={label}
       icon={icon}
-      trailing={
-        <Switch
-          accessibilityLabel={label}
-          value={value}
-          disabled={disabled}
-          onValueChange={onValueChange}
-          trackColor={{ true: '#2ebd85', false: '#2f3742' }}
-        />
-      }
+      trailing={<Toggle label={label} value={value} onValueChange={onValueChange} disabled={disabled} />}
     />
   );
 }

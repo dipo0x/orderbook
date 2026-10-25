@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Callout } from '@/components/ui/callout';
 import { ScreenHeading } from '@/components/ui/screen-heading';
 import { deleteWallet } from '@/core/wallet/storage';
+import { unregisterPush } from '@/lib/push';
 import { WalletScreen } from '@/features/wallet/wallet-screen';
 
 const CONFIRM_WORD = 'REMOVE';
@@ -19,6 +20,8 @@ export function RemoveWalletScreen() {
   async function remove() {
     if (!ready || busy) return;
     setBusy(true);
+    // Stop alerts for this wallet before it is gone.
+    await unregisterPush();
     await deleteWallet();
     // Back to the start: the splash route sends a phone with no wallet to onboarding.
     router.dismissAll();

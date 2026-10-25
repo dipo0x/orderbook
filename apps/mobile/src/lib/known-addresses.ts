@@ -21,3 +21,6 @@ export async function rememberAddress(address: string): Promise<void> {
   if (known.includes(address)) return;
   await AsyncStorage.setItem(KEY, JSON.stringify([...known, address].slice(-200))).catch(() => {});
 }
+
+/** Every address money has been sent to from this phone. */
+export const knownAddresses = read;

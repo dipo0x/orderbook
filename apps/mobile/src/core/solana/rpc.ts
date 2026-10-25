@@ -1,16 +1,43 @@
-import { getRpcUrl } from './network';
+import { apiBaseUrl, apiJson } from '../api';
+import { getCluster, getRpcUrl } from './network';
 
 let nextId = 1;
 
-/** One JSON-RPC call to the Solana node. Throws with the node's own message on failure. */
-async function rpc<T>(method: string, params: unknown[] = []): Promise<T> {
-  const response = await fetch(getRpcUrl(), {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: nextId++, method, params }),
-  });
+type RpcAnswer<T> = { result?: T; error?: { message: string } };
+
+/** Sends one JSON-RPC call straight to the public node for the selected network. */
+async function direct<T>(method: string, payload: string): Promise<RpcAnswer<T>> {
+  const response = await fetch(getRpcUrl(), { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload });
   if (!response.ok) throw new Error(`RPC ${method} failed: HTTP ${response.status}`);
-  const json = (await response.json()) as { result?: T; error?: { message: string } };
+  return (await response.json()) as RpcAnswer<T>;
+}
+
+/**
+ * One JSON-RPC call to the Solana node. Goes through the backend proxy when one is configured, and
+ * falls back to the public node if the proxy is down. Throws with the node's own message on failure.
+ */
+async function rpc<T>(method: string, params: unknown[] = []): Promise<T> {
+  const payload = JSON.stringify({ jsonrpc: '2.0', id: nextId++, method, params });
+  let json: RpcAnswer<T> | null = null;
+
+  let response: Response | null = null;
+  if (apiBaseUrl) {
+    try {
+      response = await apiJson(`/rpc/${getCluster()}`, JSON.parse(payload), 'POST', 20_000);
+    } catch {
+      response = null; // the backend can't be reached: use the public node
+    }
+  }
+  // Server trouble (5xx) also falls back. Anything else is a real answer, including a deliberate refusal.
+  if (response && response.status < 500) {
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+      throw new Error(body?.error?.message ?? `RPC ${method} failed: HTTP ${response.status}`);
+    }
+    json = (await response.json()) as RpcAnswer<T>;
+  }
+
+  json ??= await direct<T>(method, payload);
   if (json.error) throw new Error(json.error.message);
   return json.result as T;
 }

@@ -3,3 +3,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# API local data
+apps/api/data/*.db
+apps/api/data/*.db-*

@@ -7,7 +7,7 @@ import { Callout } from '@/components/ui/callout';
 import { Image } from '@/components/ui/image';
 import { useNetwork } from '@/core/solana/network';
 import { LAMPORTS_PER_SOL, formatLamportsExact } from '@/core/solana/amount';
-import { shortAddress } from '@/core/solana/address';
+import { findLookalike, shortAddress } from '@/core/solana/address';
 import { describeSimulationError } from '@/core/solana/errors';
 import {
   getFeeForMessage,
@@ -20,10 +20,12 @@ import { getWalletMeta } from '@/core/wallet/storage';
 import { useTickers } from '@/features/markets/use-tickers';
 import { WalletScreen } from '@/features/wallet/wallet-screen';
 import { useFiat } from '@/lib/currency';
-import { isKnownAddress, rememberAddress } from '@/lib/known-addresses';
+import { isKnownAddress, knownAddresses, rememberAddress } from '@/lib/known-addresses';
 import { useSettings } from '@/lib/settings';
 
+import type { RiskCheckResponse } from '@orderbook/shared';
 import { requestVerifiedSecret } from './authorize';
+import { checkRecipient } from './recipient-risk';
 import { useSend } from './send-context';
 
 const SOL_MARKET = ['SOL-USDT'] as const;
@@ -50,6 +52,9 @@ export function ReviewScreen() {
   const fx = useFiat();
   const { faceIdToSend, warnNewAddresses } = useSettings();
   const [newAddress, setNewAddress] = useState(false);
+  const [risk, setRisk] = useState<RiskCheckResponse | null>(null);
+  const [lookalike, setLookalike] = useState<string | null>(null);
+  const { cluster } = useNetwork();
   const [check, setCheck] = useState<Check>({ state: 'checking' });
   const [hasFaceId, setHasFaceId] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -64,6 +69,9 @@ export function ReviewScreen() {
         if (!cancelled) setHasFaceId(meta.biometric);
         const known = await isKnownAddress(send.to);
         if (!cancelled) setNewAddress(!known && send.to !== meta.address);
+        // Address poisoning is checked on the phone, so the list of who you pay never leaves it.
+        if (!cancelled) setLookalike(findLookalike(send.to, await knownAddresses()));
+        void checkRecipient(cluster, meta.address, send.to).then((result) => !cancelled && setRisk(result));
 
         const { blockhash } = await getLatestBlockhash();
         const { base58 } = await import('@scure/base');
@@ -99,10 +107,17 @@ export function ReviewScreen() {
 
   function confirm() {
     if (busy) return;
-    if (warnNewAddresses && newAddress) {
+    const riskWarnings = risk?.level === 'warn' ? risk.reasons.map((reason) => reason.message) : [];
+    if ((warnNewAddresses && newAddress) || riskWarnings.length > 0) {
       Alert.alert(
-        'First time sending here',
-        `You haven't sent to ${shortAddress(send.to)} from this phone before. A wrong address can't be undone. Check every character against where you copied it.`,
+        'Check this address',
+        [
+          warnNewAddresses && newAddress ? `You haven't sent to ${shortAddress(send.to)} from this phone before.` : null,
+          ...riskWarnings,
+          "A wrong address can't be undone. Check every character against where you copied it.",
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
         [
           { text: 'Go back', style: 'cancel' },
           { text: 'Send anyway', onPress: () => void sign() },
@@ -151,6 +166,7 @@ export function ReviewScreen() {
 
   const fiat = sol ? (Number(send.lamports) / Number(LAMPORTS_PER_SOL)) * Number(sol.last) : null;
   const total = send.lamports + send.fee;
+  const blocked = risk?.level === 'block' || lookalike !== null;
 
   return (
     <WalletScreen
@@ -161,7 +177,7 @@ export function ReviewScreen() {
           <Button
             label={hasFaceId && faceIdToSend ? 'Confirm with Face ID' : 'Confirm with PIN'}
             onPress={confirm}
-            disabled={check.state !== 'ok' || busy}
+            disabled={check.state !== 'ok' || busy || blocked}
           />
           <Text className="pb-1 text-center font-jetbrains text-[11px] leading-4 text-ink-faint">
             The key is decrypted only for this signature
@@ -193,7 +209,17 @@ export function ReviewScreen() {
           built, so only send small amounts.
         </Callout>
       ) : null}
-      {warnNewAddresses && newAddress ? (
+      {lookalike ? (
+        <Callout tone="danger">
+          {`This address starts and ends like ${shortAddress(lookalike)}, which you have paid before, but it is a different address. Scammers do this on purpose. Don't send.`}
+        </Callout>
+      ) : null}
+      {risk?.reasons.map((reason) => (
+        <Callout key={reason.code} tone={risk.level === 'block' ? 'danger' : 'warning'}>
+          {reason.message}
+        </Callout>
+      ))}
+      {warnNewAddresses && newAddress && !risk?.reasons.some((reason) => reason.code === 'never_used') ? (
         <Callout tone="warning">
           You haven&apos;t sent to this address from this phone before. Check every character.
         </Callout>

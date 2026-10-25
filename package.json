@@ -11,12 +11,18 @@
     "mobile": "npm run start -w @orderbook/mobile",
     "api": "npm run dev -w @orderbook/api",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm test -w @orderbook/mobile && npm test -w @orderbook/api",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "api:start": "npm start -w @orderbook/api"
   },
   "version": "1.0.0",
   "dependencies": {
     "expo": "~58.0.14",
     "react": "19.3.0",
     "react-native": "0.88.0"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }

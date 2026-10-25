@@ -22,7 +22,7 @@ export type Settings = {
   /** Most rows shown on each side of the order book. */
   bookDepth: 5 | 10 | 15 | 25;
   flashOnChange: boolean;
-  /** Notification preferences. Saved now; nothing is delivered until push is wired up. */
+  /** Which alerts are on. Off until the user turns them on, because turning one on signs this phone up with the server. */
   notifyConfirmed: boolean;
   notifyIncoming: boolean;
   notifyPriceAlerts: boolean;
@@ -40,11 +40,11 @@ const DEFAULTS: Settings = {
   lastMarket: null,
   bookDepth: 15,
   flashOnChange: true,
-  notifyConfirmed: true,
-  notifyIncoming: true,
-  notifyPriceAlerts: true,
-  notifyNewSignIn: true,
-  notifyLargeTransfer: true,
+  notifyConfirmed: false,
+  notifyIncoming: false,
+  notifyPriceAlerts: false,
+  notifyNewSignIn: false,
+  notifyLargeTransfer: false,
 };
 
 export const AUTO_LOCK_MS: Record<AutoLock, number> = {
@@ -57,7 +57,8 @@ export const AUTO_LOCK_MS: Record<AutoLock, number> = {
 let settings: Settings = DEFAULTS;
 const listeners = new Set<() => void>();
 
-AsyncStorage.getItem(KEY)
+/** Resolves once the saved settings have been read, so start-up code can rely on them. */
+export const settingsLoaded: Promise<void> = AsyncStorage.getItem(KEY)
   .then((raw) => {
     if (!raw) return;
     settings = { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) };

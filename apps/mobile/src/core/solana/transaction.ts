@@ -88,3 +88,31 @@ export function messageBase64(message: Uint8Array): string {
 export function unsignedWireBase64(message: Uint8Array): string {
   return base64.encode(concat(compact(1), new Uint8Array(64), message));
 }
+
+/**
+ * Signs a transaction someone else built (such as a Jupiter swap), given as base64. Before signing it
+ * checks that this wallet is the only signer and the fee payer, so it can't be used to sign for a
+ * different account. The transaction's own message bytes are what get signed.
+ */
+export function signSerializedTransaction(txBase64: string, privateKey: Uint8Array, publicKey: Uint8Array) {
+  const bytes = base64.decode(txBase64);
+  const signatureCount = bytes[0];
+  if (signatureCount !== 1) throw new Error('This transaction needs signatures this wallet cannot give.');
+  const message = bytes.slice(1 + 64 * signatureCount);
+
+  const versionOffset = message[0] & 0x80 ? 1 : 0; // versioned messages start with a version byte
+  if (message[versionOffset] !== 1) throw new Error('This transaction needs signatures this wallet cannot give.');
+  let keyCountAt = versionOffset + 3; // after the 3-byte header
+  let keyCount = message[keyCountAt];
+  if (keyCount >= 128) {
+    keyCount = (keyCount & 0x7f) | (message[keyCountAt + 1] << 7);
+    keyCountAt += 1;
+  }
+  const payer = message.slice(keyCountAt + 1, keyCountAt + 33);
+  if (payer.length !== 32 || payer.some((byte, i) => byte !== publicKey[i])) {
+    throw new Error('This transaction was built for a different wallet.');
+  }
+
+  const signature = ed25519.sign(message, privateKey);
+  return { signature: base58.encode(signature), wireBase64: base64.encode(concat([1], signature, message)) };
+}

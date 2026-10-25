@@ -28,3 +28,21 @@ export function formatLamportsExact(lamports: bigint): string {
   const text = formatLamports(lamports, SOL_DECIMALS).replace(/0+$/, '');
   return text.endsWith('.') ? text.slice(0, -1) : text;
 }
+
+/** Parses a typed decimal ("12.5") into base units for any token, exactly. Null if it has too many decimals. */
+export function parseUnits(text: string, decimals: number): bigint | null {
+  if (!/^\d*\.?\d*$/.test(text) || text === '' || text === '.') return null;
+  const [whole = '0', fraction = ''] = text.split('.');
+  if (fraction.length > decimals) return null;
+  return BigInt(whole || '0') * 10n ** BigInt(decimals) + BigInt(fraction.padEnd(decimals, '0') || '0');
+}
+
+/** Base units as a decimal string for any token, truncated to `shown` decimals and without trailing zeros. */
+export function formatUnits(value: bigint, decimals: number, shown = decimals): string {
+  const negative = value < 0n;
+  const abs = negative ? -value : value;
+  const scale = 10n ** BigInt(decimals);
+  const whole = abs / scale;
+  const fraction = (abs % scale).toString().padStart(decimals, '0').slice(0, shown).replace(/0+$/, '');
+  return `${negative ? '-' : ''}${whole}${fraction ? `.${fraction}` : ''}`;
+}
